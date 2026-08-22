@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>中移物联 · 万能配置台 v13</title>
+<title>中移物联 · 万能配置台 v17</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
@@ -73,14 +73,16 @@
     body[data-theme="dark"] .alert-item .a-t { color: #ff9a9a; }
     body[data-theme="dark"] .alert-item .a-d { color: #b08a8a; }
     body[data-theme="dark"] .modal-x { background: #232d47; color: var(--title); }
-    body[data-theme="dark"] .switch::after { background: #e6edf7; }
     body[data-theme="dark"] #addControllerBtn { background: #3a2c1a !important; color: #ffb066 !important; }
     body {
         background: var(--bg);
-        font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+        background-image: radial-gradient(1200px 480px at 50% -160px, #ffffff2e, transparent);
+        font-family: system-ui, -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
         padding: 16px;
-        padding-bottom: 24px;
+        padding-bottom: 28px;
         color: var(--title);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
     }
     button { font-family: inherit; cursor: pointer; }
     input, select, textarea { font-family: inherit; }
@@ -88,8 +90,9 @@
     /* 顶部导航 */
     .topbar {
         background: var(--surface);
-        border-radius: 16px;
-        box-shadow: 0 2px 12px #00000014;
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        box-shadow: 0 6px 20px #00000010;
         padding: 14px 18px;
         display: flex;
         align-items: center;
@@ -98,16 +101,23 @@
         margin-bottom: 16px;
     }
     .topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .topbar .brand i { color: var(--primary); font-size: 20px; }
     .topbar .brand .t { font-size: 18px; font-weight: 700; white-space: nowrap; }
     .topbar .brand .sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .topbar .conn { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; }
+    .topbar .actions { display: flex; gap: 8px; flex: none; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; transition: background .3s; }
+    .conn-pill {
+        display: inline-flex; align-items: center; gap: 7px;
+        background: var(--surface-3); padding: 6px 13px; border-radius: 22px;
+        font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap;
+    }
     .btn {
         border: none; border-radius: 11px; padding: 9px 14px;
         font-size: 14px; background: var(--surface-3); color: var(--title); white-space: nowrap;
         display: inline-flex; align-items: center; gap: 6px;
+        transition: transform .12s, background .15s, opacity .15s;
     }
+    .btn:active { transform: scale(.97); }
     .btn.primary { background: var(--primary); color: #fff; }
     .btn.danger { background: var(--danger); color: #fff; }
     .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 8px; }
@@ -125,35 +135,83 @@
     }
 
     /* 卡片网格 */
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-    .card {
-        background: var(--surface); border-radius: 16px; padding: 14px 12px;
-        box-shadow: 0 2px 10px #0000000d; position: relative; text-align: center;
-        border: 1px solid var(--card-border);
-        min-height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-        transition: transform .12s, box-shadow .12s;
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 8px; }
+    .group { margin-bottom: 20px; }
+    .group-h {
+        display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700;
+        color: var(--title); margin: 2px 4px 10px;
     }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px #00000014; }
+    .group-h i { color: var(--primary); }
+    .group-count {
+        font-size: 11px; font-weight: 600; color: var(--muted); background: var(--surface-3);
+        padding: 2px 9px; border-radius: 20px;
+    }
+    .group-h { cursor: pointer; user-select: none; }
+    .group-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .group-h .chev { font-size: 13px; color: var(--muted); transition: transform .2s; }
+    .group.collapsed .chev { transform: rotate(-90deg); }
+    .group.collapsed > .grid { display: none; }
+    .group.locked .group-h { cursor: default; }
+    .lock-btn {
+        width: 26px; height: 26px; border-radius: 50%; border: none; flex: none;
+        background: var(--surface-3); color: var(--muted); cursor: pointer;
+        display: flex; align-items: center; justify-content: center; font-size: 12px;
+        transition: background .15s, color .15s;
+    }
+    .lock-btn i { color: inherit; }
+    .lock-btn.on { background: var(--primary); color: #fff; }
+    .card {
+        background: var(--surface); border-radius: 18px; padding: 16px 12px 14px;
+        box-shadow: 0 4px 14px #0000000d; position: relative; text-align: center;
+        border: 1px solid var(--card-border);
+        min-height: 128px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+        transition: transform .16s, box-shadow .16s;
+        overflow: hidden;
+    }
+    .card::before {
+        content: ''; position: absolute; top: 0; left: 18px; right: 18px; height: 3px;
+        border-radius: 0 0 3px 3px; background: var(--accent, var(--primary)); opacity: .9;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px #00000018; }
     .card .ico {
         width: 46px; height: 46px; border-radius: 14px;
-        background: var(--accent, var(--primary));
+        background: linear-gradient(145deg, var(--accent, var(--primary)), var(--primary));
         display: flex; align-items: center; justify-content: center;
-        margin-bottom: 2px; box-shadow: 0 4px 10px rgba(0,0,0,.12);
+        margin-bottom: 2px; box-shadow: 0 5px 12px rgba(0,0,0,.16);
     }
     .card .ico i { font-size: 20px; color: #fff; }
     .card .nm { font-size: 14px; color: var(--title); font-weight: 600; }
     .card .vrow { display: flex; align-items: baseline; gap: 3px; justify-content: center; }
-    .card .val { font-size: 22px; font-weight: 700; color: var(--title); word-break: break-all; }
-    .card .unit { font-size: 12px; color: var(--muted); }
+    .card .val { font-size: 24px; font-weight: 700; color: var(--title); word-break: break-all; line-height: 1.1; }
+    .card .unit { font-size: 12px; color: var(--muted); font-weight: 600; }
     .card .tag {
-        font-size: 11px; padding: 2px 8px; border-radius: 20px;
-        background: var(--surface-3); color: var(--muted); margin-top: 2px;
+        font-size: 11px; padding: 3px 10px; border-radius: 20px;
+        background: var(--surface-3); color: var(--muted); margin-top: 3px; font-weight: 600;
     }
     .card .tag.ok { background: #e6f4e6; color: #2e7d32; }
     .card .tag.err { background: #fdecea; color: #b3261e; }
     .card .tag.unknown { background: var(--surface-3); color: var(--text-faint); }
     .card.alarm { background: #fff7f7; border-color: #f5c6c6; }
     .card.alarm .val { color: var(--danger); }
+
+    /* 传感器卡片：数据仪表 */
+    .card.mode-sensor .val { font-size: 23px; font-weight: 700; }
+    .card.mode-sensor .ico { border-radius: 14px; }
+
+    /* 控制器卡片：控制面板（横向行，无方框） */
+    .card.mode-controller {
+        flex-direction: row; align-items: center; justify-content: flex-start;
+        text-align: left; gap: 12px; padding: 12px 14px; min-height: 70px;
+        border: none; box-shadow: none; background: var(--surface-2); border-radius: 14px;
+    }
+    .card.mode-controller::before {
+        top: 14px; bottom: 14px; left: 0; right: auto; width: 3px; height: auto;
+        border-radius: 0 3px 3px 0;
+    }
+    .card.mode-controller .ico { width: 42px; height: 42px; border-radius: 50%; margin: 0; flex: none; }
+    .card.mode-controller .cmeta { flex: none; max-width: 40%; min-width: 0; }
+    .card.mode-controller .nm { font-size: 14px; font-weight: 700; color: var(--title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card.mode-controller .cunit { font-size: 11px; color: var(--muted); }
 
     .hist-ico {
         position: absolute; top: 8px; right: 8px; width: 26px; height: 26px;
@@ -162,40 +220,62 @@
     }
 
     /* 控制器交互控件 */
-    .ctrl-inner { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
-    .switch {
-        width: 56px; height: 32px; border-radius: 16px; border: none;
-        background: var(--switch-off); position: relative; padding: 0; transition: background .3s;
+    .ctrl-inner { flex: 1; min-width: 0; margin-left: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .switch-btn {
+        width: 100%; padding: 12px 18px; border: none; border-radius: 26px;
+        background: var(--switch-off); color: #fff; cursor: pointer; flex: none;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+        transition: background .3s, transform .12s, box-shadow .2s;
     }
-    .switch.on { background: var(--accent, var(--primary)); }
-    .switch::after {
-        content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px;
-        background: #fff; border-radius: 50%; transition: transform .3s; box-shadow: 0 2px 4px rgba(0,0,0,.25);
-    }
-    .switch.on::after { transform: translateX(24px); }
+    .switch-btn.on { background: var(--accent, var(--primary)); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+    .switch-btn:active { transform: scale(.95); }
+    .switch-btn i { font-size: 15px; }
     .select-box, .input-box, .textarea-box {
         width: 100%; border: 1px solid var(--line); border-radius: 9px;
         padding: 8px 10px; font-size: 14px; background: var(--surface-2); color: var(--title); outline: none;
     }
     .select-box:focus, .input-box:focus { border-color: var(--primary); }
+    .slider-val { display: flex; align-items: baseline; gap: 4px; justify-content: center; }
+    .slider-val .sval { font-size: 20px; font-weight: 800; color: var(--title); }
+    .slider-val .unit { font-size: 12px; color: var(--muted); }
+    .range { width: 100%; height: 22px; accent-color: var(--accent, var(--primary)); cursor: pointer; }
     .stepper { display: flex; align-items: center; gap: 6px; width: 100%; }
-    .stepper button {
-        width: 30px; height: 30px; border-radius: 8px; border: none;
-        background: var(--surface-3); font-size: 16px; color: var(--title); flex: none;
+    .stepper .range { flex: 1; width: auto; min-width: 0; }
+    .step-btn {
+        width: 32px; height: 32px; border-radius: 50%; border: none; flex: none;
+        background: var(--surface-3); color: var(--title); font-size: 18px; font-weight: 700; line-height: 1;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: background .15s, transform .1s, color .15s;
     }
-    .stepper input { flex: 1; min-width: 0; text-align: center; -moz-appearance: textfield; }
-    .stepper input::-webkit-outer-spin-button,
-    .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .step-btn:active { transform: scale(.88); background: var(--accent-soft); color: var(--accent-ink); }
+    .send-ic {
+        width: 34px; height: 34px; border-radius: 50%; border: none; flex: none;
+        background: var(--accent, var(--primary)); color: #fff; font-size: 14px;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: transform .12s, opacity .15s;
+    }
+    .send-ic:active { transform: scale(.92); }
+    .input-row { display: flex; gap: 6px; width: 100%; align-items: center; }
+    .ctrl-grid { grid-template-columns: repeat(2, 1fr); }
+
+    /* 数据点操作按钮（一行展示） */
+    .points-actions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .points-actions .btn { flex: 1 1 auto; justify-content: center; white-space: nowrap; }
+    @media (max-width: 520px) {
+        .points-actions { flex-wrap: nowrap; }
+        .points-actions .btn { flex: 1; min-width: 0; padding-left: 6px; padding-right: 6px; font-size: 13px; }
+    }
 
     /* 设置页 */
     .settings-head {
-        background: var(--surface); border-radius: 16px; box-shadow: 0 2px 12px #00000014;
+        background: var(--surface); border: 1px solid var(--card-border); border-radius: 18px; box-shadow: 0 6px 20px #00000010;
         padding: 14px 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
     }
     .settings-head h1 { font-size: 20px; display: flex; align-items: center; gap: 8px; }
     .settings-head h1 i { color: var(--primary); }
     .sect {
-        background: var(--surface); border-radius: 16px; box-shadow: 0 2px 12px #00000014;
+        background: var(--surface); border: 1px solid var(--card-border); border-radius: 18px; box-shadow: 0 6px 20px #00000010;
         padding: 16px; margin-bottom: 16px;
     }
     .sect-h {
@@ -295,6 +375,14 @@
 
     /* 图表 */
     #chartTip { text-align: center; font-size: 13px; color: var(--text-faint); margin-top: 6px; }
+    .hist-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; row-gap: 8px; margin-bottom: 10px; }
+    .hist-ranges { display: flex; gap: 6px; }
+    .hr-btn {
+        border: 1px solid var(--line); border-radius: 18px; padding: 5px 14px;
+        background: var(--surface-2); color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer;
+        transition: background .15s, color .15s, border-color .15s;
+    }
+    .hr-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
     /* Toast */
     .toast {
@@ -328,13 +416,21 @@
 
     @media (max-width: 840px) {
         .grid { grid-template-columns: repeat(2, 1fr); }
+        .ctrl-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 520px) {
         .grid { gap: 10px; }
         body { padding: 10px; padding-bottom: 20px; }
-        .topbar { position: sticky; top: 0; z-index: 9994; flex-wrap: wrap; }
-        .topbar .brand { flex: 1; }
+        .topbar { position: sticky; top: 0; z-index: 9994; flex-wrap: nowrap; gap: 8px; padding: 10px 12px; }
+        .topbar .brand { flex: 1 1 auto; min-width: 0; }
+        .topbar .brand .t { font-size: 16px; }
+        .topbar .brand .sub { font-size: 11px; }
+        .topbar .conn { margin-left: auto; flex: none; }
+        .conn-pill { padding: 5px 10px; font-size: 12px; }
+        .topbar .actions .lbl { display: none; }
+        .topbar .actions .btn { padding: 9px 11px; border-radius: 10px; }
         .card { min-height: 116px; padding: 14px 10px; border-radius: 14px; }
+        .card.mode-controller { min-height: 60px; padding: 10px 12px; }
     }
 </style>
 </head>
@@ -345,19 +441,17 @@
 <div id="homePage" class="page active">
     <div class="topbar">
         <div class="brand">
-            <i class="fa fa-cubes"></i>
             <div>
                 <div class="t"><span id="appTitleText">万能配置台</span></div>
                 <div class="sub">设备：<span id="deviceNameDisplay">未配置</span></div>
             </div>
         </div>
         <div class="conn">
-            <span class="dot" id="statusDot"></span>
-            <span id="statusText">未连接</span>
+            <span class="conn-pill"><span class="dot" id="statusDot"></span><span id="statusText">未连接</span></span>
         </div>
-        <div style="display:flex;gap:8px;">
-            <button class="btn" id="refreshBtn"><i class="fa fa-refresh"></i> 刷新</button>
-            <button class="btn primary" id="goSettingsBtn"><i class="fa fa-gear"></i> 设置</button>
+        <div class="actions">
+            <button class="btn" id="refreshBtn" title="刷新"><i class="fa fa-refresh"></i><span class="lbl">刷新</span></button>
+            <button class="btn primary" id="goSettingsBtn" title="设置"><i class="fa fa-gear"></i><span class="lbl">设置</span></button>
         </div>
     </div>
 
@@ -366,7 +460,7 @@
         <span id="alertBannerText"></span>
     </div>
 
-    <div class="grid" id="cardGrid"></div>
+    <div id="cardGrid"></div>
 
     <div style="text-align:center;font-size:13px;color:var(--muted);padding:6px 0 20px;">
         <i class="fa fa-refresh"></i> 数据每 10 秒自动刷新
@@ -381,7 +475,7 @@
     </div>
 
     <!-- 界面皮肤 -->
-    <div class="sect open" id="sectTheme">
+    <div class="sect" id="sectTheme">
         <div class="sect-h"><i class="fa fa-paint-brush"></i> 界面皮肤 <i class="fa fa-chevron-down chev"></i></div>
         <div class="sect-body">
             <div class="theme-grid" id="themeGrid">
@@ -402,19 +496,19 @@
     </div>
 
     <!-- 应用名称 -->
-    <div class="sect open" id="sectApp">
+    <div class="sect" id="sectApp">
         <div class="sect-h"><i class="fa fa-header"></i> 应用名称 <i class="fa fa-chevron-down chev"></i></div>
         <div class="sect-body">
             <div class="field">
-                <div class="flabel">主页标题（最多 5 个字）</div>
-                <input class="finput" id="inputAppTitle" maxlength="5" placeholder="请输入标题（≤5字）">
+                <div class="flabel">主页标题（最多 8 个字）</div>
+                <input class="finput" id="inputAppTitle" maxlength="8" placeholder="请输入标题（≤8字）">
             </div>
             <div style="font-size:12px;color:var(--muted);">留空则显示默认「万能配置台」。</div>
         </div>
     </div>
 
     <!-- OneNet 平台配置 -->
-    <div class="sect open" id="sectPlatform">
+    <div class="sect" id="sectPlatform">
         <div class="sect-h"><i class="fa fa-cloud"></i> OneNet 平台配置 <i class="fa fa-chevron-down chev"></i></div>
         <div class="sect-body">
             <div class="field"><div class="flabel">产品 ID（Product ID）</div><input class="finput" id="inputProductId" placeholder="请输入产品 ID"></div>
@@ -428,10 +522,10 @@
     </div>
 
     <!-- 数据点管理 -->
-    <div class="sect open" id="sectPoints">
+    <div class="sect" id="sectPoints">
         <div class="sect-h"><i class="fa fa-database"></i> 数据模型（数据点）<i class="fa fa-chevron-down chev"></i></div>
         <div class="sect-body">
-            <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <div class="points-actions">
                 <button class="btn primary" id="addSensorBtn"><i class="fa fa-plus"></i> 传感器</button>
                 <button class="btn" id="addControllerBtn" style="background:#fff3e0;color:#e65100;"><i class="fa fa-plus"></i> 控制器</button>
                 <button class="btn" id="importBtn"><i class="fa fa-upload"></i> 导入物模型</button>
@@ -506,11 +600,11 @@
                 <div class="flabel">排序号（越小越靠前）</div>
                 <input class="finput" id="pOrder" type="number" min="0" step="1" placeholder="自动排最后">
             </div>
-            <div class="field">
-                <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
-                    <input type="checkbox" id="pVisible" checked style="width:18px;height:18px;accent-color:var(--primary);"> 在首页显示
-                </label>
-            </div>
+        </div>
+        <div class="field">
+            <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
+                <input type="checkbox" id="pVisible" checked style="width:18px;height:18px;accent-color:var(--primary);"> 在首页显示
+            </label>
         </div>
         <div class="field">
             <div class="flabel">图标（点击选择）</div>
@@ -526,9 +620,10 @@
         </div>
         <div id="thresholdField">
             <div class="row2">
-                <div class="field"><div class="flabel">报警下限（可选）</div><input class="finput" id="pMin" type="number" step="any" placeholder="留空不启用"></div>
-                <div class="field"><div class="flabel">报警上限（可选）</div><input class="finput" id="pMax" type="number" step="any" placeholder="留空不启用"></div>
+                <div class="field"><div class="flabel" id="pMinLabel">最小值（可选）</div><input class="finput" id="pMin" type="number" step="any" placeholder="留空默认 0"></div>
+                <div class="field"><div class="flabel" id="pMaxLabel">最大值（可选）</div><input class="finput" id="pMax" type="number" step="any" placeholder="留空默认 100"></div>
             </div>
+            <div class="field" id="stepField"><div class="flabel">步进（可选）</div><input class="finput" id="pStep" type="number" step="any" min="0" placeholder="留空按类型自动"></div>
         </div>
         <div class="modal-foot">
             <button class="btn" id="pointSaveBtn"><i class="fa fa-check"></i> 保存</button>
@@ -566,6 +661,14 @@
             <button class="modal-x" id="histClose">&times;</button>
         </div>
         <div id="histBadge" style="font-size:12px;color:var(--muted);margin-bottom:6px;"></div>
+        <div id="histSource" style="font-size:12px;color:var(--text-faint);margin-bottom:6px;"></div>
+        <div class="hist-toolbar">
+            <div class="hist-ranges" id="histRanges">
+                <button type="button" class="hr-btn" data-range="3600000">1小时</button>
+                <button type="button" class="hr-btn active" data-range="86400000">1天</button>
+                <button type="button" class="hr-btn" data-range="604800000">7天</button>
+            </div>
+        </div>
         <div id="histCur" class="cur-val">当前值：--</div>
         <div id="histChart" style="width:100%;height:240px;"></div>
         <div id="chartTip"></div>
@@ -611,7 +714,7 @@
         'fa-cube':'箱体','fa-plug':'插座/继电器','fa-hdd-o':'存储/硬盘',
         'fa-power-off':'电源/开关','fa-font':'文本','fa-code':'代码/JSON','fa-list-ol':'列表'
     };
-    const COLORS = [ '#3399dd','#4caf50','#e05555','#ff9800','#9c27b0','#00bcd4','#795548','#607d8b' ];
+    const COLORS = [ '#3399dd','#4caf50','#e05555','#ff9800','#9c27b0','#00bcd4','#795548','#607d8b','#e91e63','#3f51b5','#009688','#ff7043' ];
 
     const api = {
         deviceDetail: 'https://iot-api.heclouds.com/device/detail',
@@ -628,6 +731,9 @@
     let alertActive = {};     // cloudKey -> bool 是否已报警（防重复）
     let chartInst = null;
     let currentHistId = null;
+    let currentHistRange = 86400000;   // 历史数据时间范围（默认 1 天）
+    let histBuffer = {};               // 本地历史采集缓冲 cloudKey -> [{t, v}]
+    let groupState = {};               // 主页分组的折叠/锁定状态 { id: {collapsed, locked} }
     let editingId = null;
     let currentIcon = 'fa-thermometer-half';
     let currentColor = '#3399dd';
@@ -638,7 +744,9 @@
         config: 'cmcc.config',
         points: 'cmcc.points',
         alerts: 'cmcc.alerts',
-        theme: 'cmcc.theme'
+        theme: 'cmcc.theme',
+        hist:  'cmcc.hist',
+        groups: 'cmcc.groups'
     };
     function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
     function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
@@ -648,9 +756,22 @@
         points = load(STORE.points, []);
         points.forEach((p, i) => { if (p.order === undefined || p.order === null || isNaN(Number(p.order))) p.order = i; });
         alerts = load(STORE.alerts, []);
+        histBuffer = load(STORE.hist, {});
+        groupState = load(STORE.groups, {});
     }
     function persistPoints() { save(STORE.points, points); }
     function persistAlerts() { save(STORE.alerts, alerts); }
+    function saveHistBuffer() { save(STORE.hist, histBuffer); }
+    function persistGroups() { save(STORE.groups, groupState); }
+    function recordHistory(identifier, value) {
+        if (!identifier || value === undefined || value === null) return;
+        const now = Date.now();
+        const cut = now - 7 * 86400000;   // 本地仅保留最近 7 天
+        let arr = (histBuffer[identifier] || []).filter(x => x && x.t >= cut);
+        arr.push({ t: now, v: value });
+        if (arr.length > 1500) arr = arr.slice(arr.length - 1500);
+        histBuffer[identifier] = arr;
+    }
 
     // ============ 排序 ============
     function ordOf(p) { const n = Number(p.order); return isNaN(n) ? 0 : n; }
@@ -703,6 +824,17 @@
         if (meta.decimals === 0) return String(Math.round(n));
         return n.toFixed(meta.decimals);
     }
+    function numStep(m) { return m.decimals === 0 ? 1 : (m.decimals === 2 ? 0.1 : 0.0001); }
+    function numBounds(p) {
+        let mn = (p.min !== null && p.min !== undefined && p.min !== '') ? Number(p.min) : null;
+        let mx = (p.max !== null && p.max !== undefined && p.max !== '') ? Number(p.max) : null;
+        if (mn === null || mx === null || !isFinite(mn) || !isFinite(mx) || !(mn < mx)) { mn = 0; mx = 100; }
+        return [mn, mx];
+    }
+    function stepOf(p) {
+        if (p && p.step != null && p.step !== '' && !isNaN(Number(p.step)) && Number(p.step) > 0) return Number(p.step);
+        return numStep(typeMeta(p.type));
+    }
     function fmtDate(v) {
         if (v === null || v === undefined || v === '') return '--';
         const d = new Date(v);
@@ -717,7 +849,12 @@
         const meta = typeMeta(p.type);
         switch (meta.kind) {
             case 'number': return fmtNumber(v, meta);
-            case 'bool':   return parseBool(v) ? '开' : '关';
+            case 'bool': {
+                const on = parseBool(v);
+                const bl = p.boolLabels;
+                if (bl && bl[on]) return bl[on];
+                return on ? '开' : '关';
+            }
             case 'enum': {
                 const opts = (p.enumOptions || []).map(String);
                 if (opts.length && typeof v === 'number') return opts[v] !== undefined ? opts[v] : String(v);
@@ -762,8 +899,12 @@
             const data = await res.json();
             if (data.code === 0 && Array.isArray(data.data)) {
                 data.data.forEach(item => {
-                    if (item && item.identifier !== undefined) propCache[item.identifier] = item.value;
+                    if (item && item.identifier !== undefined) {
+                        propCache[item.identifier] = item.value;
+                        recordHistory(item.identifier, item.value);
+                    }
                 });
+                saveHistBuffer();
                 checkAlerts();
                 renderCards();
                 syncHistCurrent();
@@ -821,43 +962,78 @@
     function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
     // ============ 渲染首页卡片（只读） ============
+    function cardHtml(p) {
+        const val = propCache[p.cloudKey];
+        const hasData = val !== undefined && val !== null && val !== '';
+        const isAlarm = !!alertActive[p.cloudKey];
+        const m = typeMeta(p.type);
+
+        if (p.mode === 'controller') {
+            const noIco = m.kind === 'bool';
+            return `
+        <div class="card mode-controller ${isAlarm ? 'alarm' : ''}" style="--accent:${p.color}">
+            ${noIco ? '' : `<div class="ico"><i class="fa ${p.icon}"></i></div>`}
+            <div class="cmeta">
+                <div class="nm">${escapeHtml(p.name)}</div>
+                ${(p.unit && m.kind !== 'number') ? `<div class="cunit">${escapeHtml(p.unit)}</div>` : ''}
+            </div>
+            ${buildControllerHtml(p, val)}
+        </div>`;
+        }
+
+        const histIcon = m.plottable ? `<div class="hist-ico" data-hist="${p.id}" title="历史数据"><i class="fa fa-clock-o"></i></div>` : '';
+        let tag;
+        if (!hasData) tag = '<span class="tag unknown">未知</span>';
+        else if (isAlarm) tag = '<span class="tag err">异常</span>';
+        else tag = '<span class="tag ok">正常</span>';
+
+        return `
+        <div class="card mode-sensor ${isAlarm ? 'alarm' : ''}" style="--accent:${p.color}">
+            ${histIcon}
+            <div class="ico"><i class="fa ${p.icon}"></i></div>
+            <div class="nm">${escapeHtml(p.name)}</div>
+            <div class="vrow"><span class="val" id="v_${p.id}">${formatValue(val, p)}</span>${p.unit ? `<span class="unit">${escapeHtml(p.unit)}</span>` : ''}</div>
+            ${tag}
+        </div>`;
+    }
+
     function renderCards() {
         const grid = $('cardGrid');
         if (points.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1;" class="empty-tip"><i class="fa fa-cubes"></i>还没有数据点。<br>点击右上角「设置」→「数据模型」添加或导入物模型。</div>';
+            grid.innerHTML = '<div class="empty-tip"><i class="fa fa-cubes"></i>还没有数据点。<br>点击右上角「设置」→「数据模型」添加或导入物模型。</div>';
             return;
         }
         const visiblePoints = sortedPoints().filter(p => p.visible !== false);
         if (visiblePoints.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1;" class="empty-tip"><i class="fa fa-eye-slash"></i>所有数据点都已设为首页隐藏。<br>可到「设置」→「数据模型」点击眼睛图标重新显示。</div>';
+            grid.innerHTML = '<div class="empty-tip"><i class="fa fa-eye-slash"></i>所有数据点都已设为首页隐藏。<br>可到「设置」→「数据模型」点击眼睛图标重新显示。</div>';
             return;
         }
-        grid.innerHTML = visiblePoints.map(p => {
-            const val = propCache[p.cloudKey];
-            const hasData = val !== undefined && val !== null && val !== '';
-            const isAlarm = !!alertActive[p.cloudKey];
-            const m = typeMeta(p.type);
-            const histIcon = m.plottable ? `<div class="hist-ico" data-hist="${p.id}" title="历史数据"><i class="fa fa-clock-o"></i></div>` : '';
+        const sensors = visiblePoints.filter(p => p.mode !== 'controller');
+        const controllers = visiblePoints.filter(p => p.mode === 'controller');
+        const ctrlBool = controllers.filter(p => typeMeta(p.type).kind === 'bool');
+        const ctrlNum = controllers.filter(p => typeMeta(p.type).kind === 'number');
+        const ctrlOther = controllers.filter(p => { const k = typeMeta(p.type).kind; return k !== 'bool' && k !== 'number'; });
 
-            let inner = '';
-            if (p.mode === 'controller') {
-                inner = buildControllerHtml(p, val);
-            } else {
-                let tag;
-                if (!hasData) tag = '<span class="tag unknown">未知</span>';
-                else if (isAlarm) tag = '<span class="tag err">异常</span>';
-                else tag = '<span class="tag ok">正常</span>';
-                inner = `
-                    <div class="vrow"><span class="val" id="v_${p.id}">${formatValue(val, p)}</span>${p.unit ? `<span class="unit">${escapeHtml(p.unit)}</span>` : ''}</div>
-                    ${tag}`;
-            }
+        const groups = [];
+        if (sensors.length) groups.push({ id: 'sensor', icon: 'fa-download', title: '传感器', items: sensors, cls: 'grid' });
+        if (ctrlBool.length) groups.push({ id: 'switch', icon: 'fa-power-off', title: '开关', items: ctrlBool, cls: 'grid ctrl-grid' });
+        if (ctrlNum.length) groups.push({ id: 'number', icon: 'fa-sliders', title: '数值调节', items: ctrlNum, cls: 'grid ctrl-grid' });
+        if (ctrlOther.length) groups.push({ id: 'other', icon: 'fa-cog', title: '其它控制', items: ctrlOther, cls: 'grid ctrl-grid' });
 
+        grid.innerHTML = groups.map(g => {
+            const st = groupState[g.id] || (groupState[g.id] = { collapsed: false, locked: false });
+            const locked = !!st.locked;
+            const collapsed = !!st.collapsed && !locked;
             return `
-            <div class="card ${isAlarm ? 'alarm' : ''}" style="--accent:${p.color}">
-                ${histIcon}
-                <div class="ico"><i class="fa ${p.icon}"></i></div>
-                <div class="nm">${escapeHtml(p.name)}</div>
-                ${inner}
+            <div class="group ${collapsed ? 'collapsed' : ''} ${locked ? 'locked' : ''}" data-group="${g.id}">
+                <div class="group-h">
+                    <i class="fa ${g.icon}"></i> ${g.title} <span class="group-count">${g.items.length}</span>
+                    <span class="group-tools">
+                        <button type="button" class="lock-btn ${locked ? 'on' : ''}" data-lock="${g.id}" title="${locked ? '已锁定，点击解锁' : '锁定（防止折叠）'}"><i class="fa ${locked ? 'fa-lock' : 'fa-unlock-alt'}"></i></button>
+                        <i class="fa fa-chevron-down chev"></i>
+                    </span>
+                </div>
+                <div class="${g.cls}">${g.items.map(cardHtml).join('')}</div>
             </div>`;
         }).join('');
     }
@@ -868,43 +1044,50 @@
         if (m.kind === 'bool') {
             const hasData = val !== undefined && val !== null && val !== '';
             const on = parseBool(val);
-            const label = hasData ? (on ? '开' : '关') : '未知';
+            const bl = p.boolLabels;
+            let label;
+            if (!hasData) label = '未知';
+            else if (bl && bl[on]) label = bl[on];
+            else label = on ? '开' : '关';
             return `<div class="ctrl-inner">
-                <button type="button" class="switch ${on ? 'on' : ''}" id="sw_${p.id}" data-switch="${p.id}"></button>
-                <span style="font-size:12px;color:var(--muted);">${label}</span>
+                <button type="button" class="switch-btn ${on ? 'on' : ''}" data-switch="${p.id}" aria-label="开关"><i class="fa fa-power-off"></i><span>${label}</span></button>
             </div>`;
         }
         if (m.kind === 'enum') {
             const opts = p.enumOptions || [];
-            const cur = formatValue(val, p);
             const options = opts.map(o => `<option value="${escapeHtml(o)}" ${String(o) === String(val) || (typeof val === 'number' && Number(o) === val) ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
             return `<div class="ctrl-inner">
                 <select class="select-box" data-enum="${p.id}">${options || '<option>--</option>'}</select>
-                <span style="font-size:12px;color:var(--muted);">当前：${escapeHtml(cur)}</span>
             </div>`;
         }
         if (m.kind === 'number') {
-            const step = m.decimals === 0 ? 1 : (m.decimals === 2 ? 0.1 : 0.0001);
-            const cur = val === undefined || val === null ? '' : Number(val);
-            return `<div class="ctrl-inner">
+            const step = stepOf(p);
+            const cur = val === undefined || val === null || val === '' ? '' : Number(val);
+            const [mn, mx] = numBounds(p);
+            const sv = cur === '' ? '' : Math.min(mx, Math.max(mn, cur));
+            return `<div class="ctrl-inner" style="align-items:stretch;">
+                <div class="slider-val"><span class="sval" id="sv_${p.id}">${cur === '' ? '--' : fmtNumber(cur, m)}</span>${p.unit ? `<span class="unit">${escapeHtml(p.unit)}</span>` : ''}</div>
                 <div class="stepper">
-                    <button type="button" data-step="${p.id}" data-d="-1">−</button>
-                    <input class="input-box" id="inp_${p.id}" type="number" step="${step}" value="${cur}">
-                    <button type="button" data-step="${p.id}" data-d="1">+</button>
+                    <button type="button" class="step-btn" data-step="${p.id}" data-dir="-1" aria-label="减">−</button>
+                    <input class="range" id="inp_${p.id}" type="range" min="${mn}" max="${mx}" step="${step}" value="${sv}" data-range="${p.id}">
+                    <button type="button" class="step-btn" data-step="${p.id}" data-dir="1" aria-label="加">+</button>
                 </div>
-                <button type="button" class="btn small primary" data-send="${p.id}" style="width:100%;justify-content:center;"><i class="fa fa-paper-plane"></i> 下发</button>
             </div>`;
         }
         if (m.kind === 'date') {
             return `<div class="ctrl-inner">
-                <input class="input-box" id="inp_${p.id}" type="datetime-local">
-                <button type="button" class="btn small primary" data-send="${p.id}" style="width:100%;justify-content:center;"><i class="fa fa-paper-plane"></i> 下发</button>
+                <div class="input-row">
+                    <input class="input-box" id="inp_${p.id}" type="datetime-local">
+                    <button type="button" class="send-ic" data-send="${p.id}" title="下发"><i class="fa fa-paper-plane"></i></button>
+                </div>
             </div>`;
         }
         if (m.kind === 'string') {
             return `<div class="ctrl-inner">
-                <input class="input-box" id="inp_${p.id}" type="text" value="${val === undefined || val === null ? '' : escapeHtml(String(val))}" placeholder="输入值">
-                <button type="button" class="btn small primary" data-send="${p.id}" style="width:100%;justify-content:center;"><i class="fa fa-paper-plane"></i> 下发</button>
+                <div class="input-row">
+                    <input class="input-box" id="inp_${p.id}" type="text" value="${val === undefined || val === null ? '' : escapeHtml(String(val))}" placeholder="输入值">
+                    <button type="button" class="send-ic" data-send="${p.id}" title="下发"><i class="fa fa-paper-plane"></i></button>
+                </div>
             </div>`;
         }
         return `<div class="vrow"><span class="val">${formatValue(val, p)}</span></div>`;
@@ -919,6 +1102,21 @@
             let value = t.value;
             if (/^-?\d+(\.\d+)?$/.test(value)) value = Number(value);
             doSend(p, value);
+        } else if (t.dataset && t.dataset.range) {
+            const p = pointById(t.dataset.range);
+            if (!p) return;
+            let value = t.value;
+            if (/^-?\d+(\.\d+)?$/.test(value)) value = Number(value);
+            doSend(p, value);
+        }
+    });
+    document.addEventListener('input', function (e) {
+        const t = e.target;
+        if (t.dataset && t.dataset.range) {
+            const p = pointById(t.dataset.range);
+            if (!p) return;
+            const el = document.getElementById('sv_' + p.id);
+            if (el) el.textContent = fmtNumber(t.value, typeMeta(p.type));
         }
     });
     document.addEventListener('click', function (e) {
@@ -936,7 +1134,7 @@
             return;
         }
 
-        const t = e.target.closest('[data-switch], [data-step], [data-send], [data-hist], [data-edit], [data-del], [data-up], [data-down], [data-eye]');
+        const t = e.target.closest('[data-switch], [data-send], [data-hist], [data-edit], [data-del], [data-up], [data-down], [data-eye], [data-step]');
         if (!t) return;
 
         if (t.dataset.switch !== undefined) {
@@ -947,13 +1145,20 @@
         }
         else if (t.dataset.step !== undefined) {
             const p = pointById(t.dataset.step);
-            const dir = Number(t.dataset.d);
+            if (!p) return;
             const m = typeMeta(p.type);
-            const step = m.decimals === 0 ? 1 : (m.decimals === 2 ? 0.1 : 0.0001);
+            const [mn, mx] = numBounds(p);
+            const step = stepOf(p);
             const inp = $('inp_' + p.id);
-            let v = Number(inp.value || propCache[p.cloudKey] || 0) + dir * step;
-            v = Number(v.toFixed(m.decimals));
-            inp.value = v;
+            if (!inp) return;
+            const curV = (inp.value === '' || inp.value == null) ? 0 : Number(inp.value);
+            let nv = (isNaN(curV) ? 0 : curV) + Number(t.dataset.dir) * step;
+            nv = Math.round(nv * 1e6) / 1e6;
+            nv = Math.min(mx, Math.max(mn, nv));
+            inp.value = nv;
+            const el = $('sv_' + p.id);
+            if (el) el.textContent = fmtNumber(nv, m);
+            doSend(p, nv);
         }
         else if (t.dataset.send !== undefined) {
             const p = pointById(t.dataset.send);
@@ -1080,44 +1285,85 @@
     }
 
     // ============ 历史数据曲线 ============
-    async function fetchHistory(id) {
+    function histTimeLabel(ms, showDate) {
+        const d = new Date(ms);
+        const pad = n => String(n).padStart(2, '0');
+        if (showDate) return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    async function fetchHistory(id, range) {
         const p = pointById(id);
         if (!p || !ensureConfig()) return null;
-        const end = Date.now(), start = end - 86400000;
+        const end = Date.now(), start = end - (range || 86400000);
+        const showDate = (range || 86400000) > 86400000;
         try {
             const res = await fetch(`${api.getHistory}?product_id=${config.productId}&device_name=${config.deviceName}&identifier=${p.cloudKey}&start_time=${start}&end_time=${end}&limit=100`, { headers: { authorization: config.token } });
             const data = await res.json();
             if (data.code === 0 && data.data && data.data.list) {
                 const list = data.data.list.sort((a, b) => Number(a.time) - Number(b.time));
                 return {
-                    times: list.map(i => { const d = new Date(Number(i.time)); return `${d.getHours()}:${d.getMinutes()}`; }),
-                    values: list.map(i => Number(i.value))
+                    times: list.map(i => histTimeLabel(Number(i.time), showDate)),
+                    values: list.map(i => Number(i.value)),
+                    raw: list.map(i => ({ time: Number(i.time), value: i.value }))
                 };
             }
         } catch (e) {}
         return null;
     }
+    function localHistory(id, range) {
+        const p = pointById(id);
+        if (!p) return null;
+        const start = Date.now() - (range || 86400000);
+        const list = (histBuffer[p.cloudKey] || []).filter(x => x && x.t >= start).sort((a, b) => a.t - b.t);
+        if (!list.length) return null;
+        const showDate = (range || 86400000) > 86400000;
+        return {
+            times: list.map(x => histTimeLabel(x.t, showDate)),
+            values: list.map(x => Number(x.v)),
+            raw: list.map(x => ({ time: x.t, value: x.v })),
+            local: true
+        };
+    }
     function openHistory(id) {
         const p = pointById(id); if (!p) return;
         currentHistId = id;
+        currentHistRange = 86400000;
         if (chartInst) { chartInst.dispose(); chartInst = null; }
         $('histTitle').textContent = p.name + ' - 历史数据';
         $('histBadge').textContent = `${p.cloudKey} · ${p.unit || typeMeta(p.type).label}`;
+        $('histSource').textContent = '';
         syncHistCurrent();
-        $('chartTip').textContent = '加载中...';
+        document.querySelectorAll('.hr-btn').forEach(b => b.classList.toggle('active', Number(b.dataset.range) === currentHistRange));
         $('historyModal').style.display = 'flex';
-        fetchHistory(id).then(res => {
+        loadHistory();
+    }
+    function loadHistory() {
+        if (!currentHistId) return;
+        const p = pointById(currentHistId);
+        if (!p) return;
+        $('chartTip').textContent = '加载中...';
+        fetchHistory(currentHistId, currentHistRange).then(res => {
+            const final = (res && res.values && res.values.length) ? res : localHistory(currentHistId, currentHistRange);
             const el = $('histChart');
-            if (!res) { $('chartTip').textContent = '暂无数据'; return; }
+            if (chartInst) { chartInst.dispose(); chartInst = null; }
+            if (!final || !final.values.length) {
+                $('chartTip').textContent = '暂无数据（设备未上报或未开启云端历史存储）';
+                $('histSource').textContent = '';
+                return;
+            }
             $('chartTip').textContent = '';
+            $('histSource').textContent = final.local ? '数据来源：本页采集记录（云端暂无历史可查）' : '数据来源：OneNET 云端历史';
             chartInst = echarts.init(el);
+            const dark = document.body.dataset.theme === 'dark';
+            const axisColor = dark ? '#93a3bd' : '#5a7a9a';
+            const splitColor = dark ? '#2a3550' : '#e8f0f7';
             chartInst.setOption({
                 tooltip: { trigger: 'axis' },
                 grid: { left: '3%', right: '4%', bottom: '10%', top: '8%', containLabel: true },
-                xAxis: { type: 'category', data: res.times },
-                yAxis: { type: 'value' },
+                xAxis: { type: 'category', data: final.times, axisLine: { lineStyle: { color: splitColor } }, axisLabel: { color: axisColor } },
+                yAxis: { type: 'value', splitLine: { lineStyle: { color: splitColor } }, axisLabel: { color: axisColor } },
                 series: [{
-                    type: 'line', data: res.values, smooth: true,
+                    type: 'line', data: final.values, smooth: true,
                     lineStyle: { width: 2, color: p.color }, itemStyle: { color: p.color },
                     areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: p.color + '30' }, { offset: 1, color: p.color + '05' }]) }
                 }]
@@ -1166,6 +1412,7 @@
         $('pEnum').value = p && p.enumOptions ? p.enumOptions.join(',') : '';
         $('pMin').value = p && p.min !== undefined && p.min !== null && p.min !== '' ? p.min : '';
         $('pMax').value = p && p.max !== undefined && p.max !== null && p.max !== '' ? p.max : '';
+        $('pStep').value = p && p.step !== undefined && p.step !== null && p.step !== '' ? p.step : '';
         applyTypeVisibility();
         $('pointModalTitle').textContent = id ? '编辑数据点' : '添加数据点';
         $('pointModal').style.display = 'flex';
@@ -1177,7 +1424,13 @@
         const mode = $('pMode').value;
         const m = DATA_TYPES[t];
         $('enumField').style.display = (m.kind === 'enum') ? 'block' : 'none';
-        $('thresholdField').style.display = (mode === 'sensor' && m.kind === 'number') ? 'block' : 'none';
+        $('thresholdField').style.display = (m.kind === 'number') ? 'block' : 'none';
+        const isSensor = mode === 'sensor';
+        $('pMinLabel').textContent = isSensor ? '报警下限（可选）' : '最小值（可选）';
+        $('pMaxLabel').textContent = isSensor ? '报警上限（可选）' : '最大值（可选）';
+        $('pMin').placeholder = isSensor ? '留空不报警' : '留空默认 0';
+        $('pMax').placeholder = isSensor ? '留空不报警' : '留空默认 100';
+        $('stepField').style.display = (m.kind === 'number' && !isSensor) ? 'block' : 'none';
     }
     function savePoint() {
         const id = $('pId').value.trim();
@@ -1197,6 +1450,7 @@
         const orderVal = parseInt($('pOrder').value, 10);
         const order = isNaN(orderVal) ? nextOrder() : orderVal;
 
+        const existing = editingId ? points.find(x => x.id === editingId) : null;
         const obj = {
             id, name, cloudKey: key, type, mode,
             unit: $('pUnit').value.trim(),
@@ -1206,7 +1460,9 @@
             visible: $('pVisible').checked,
             enumOptions,
             min: m.kind === 'number' ? ($('pMin').value === '' ? null : Number($('pMin').value)) : null,
-            max: m.kind === 'number' ? ($('pMax').value === '' ? null : Number($('pMax').value)) : null
+            max: m.kind === 'number' ? ($('pMax').value === '' ? null : Number($('pMax').value)) : null,
+            step: m.kind === 'number' ? ($('pStep').value === '' ? null : Number($('pStep').value)) : null,
+            boolLabels: (m.kind === 'bool' && existing && existing.boolLabels) ? existing.boolLabels : null
         };
 
         if (editingId) {
@@ -1319,7 +1575,12 @@
                 color: COLORS[idx % COLORS.length],
                 order: baseOrder + added,
                 enumOptions: (m.kind === 'enum') ? extractEnumOptions(specs) : [],
-                min: null, max: null
+                boolLabels: (m.kind === 'bool' && specs && typeof specs === 'object' && (specs['true'] != null || specs['false'] != null))
+                    ? { true: specs['true'] != null ? String(specs['true']) : '', false: specs['false'] != null ? String(specs['false']) : '' }
+                    : null,
+                min: (m.kind === 'number' && specs.min != null && specs.min !== '') ? Number(specs.min) : null,
+                max: (m.kind === 'number' && specs.max != null && specs.max !== '') ? Number(specs.max) : null,
+                step: (m.kind === 'number' && specs.step != null && specs.step !== '') ? Number(specs.step) : null
             };
 
             const existing = byKey[obj.cloudKey];
@@ -1327,8 +1588,6 @@
                 obj.id = existing.id;
                 obj.icon = existing.icon;
                 obj.color = existing.color;
-                obj.min = existing.min;
-                obj.max = existing.max;
                 obj.order = existing.order;
                 const ei = points.findIndex(x => x.id === existing.id);
                 if (ei >= 0) points[ei] = obj;
@@ -1361,6 +1620,29 @@
         $('goSettingsBtn').onclick = () => switchPage('settingsPage');
         $('backHomeBtn').onclick = () => switchPage('homePage');
         $('refreshBtn').onclick = () => { fetchDeviceStatus(); fetchProperties(); showToast('已刷新'); };
+        $('cardGrid').addEventListener('click', function (e) {
+            const lockBtn = e.target.closest('.lock-btn');
+            if (lockBtn) {
+                const id = lockBtn.dataset.lock;
+                const st = groupState[id] || (groupState[id] = { collapsed: false, locked: false });
+                st.locked = !st.locked;
+                if (st.locked) st.collapsed = false;
+                persistGroups();
+                renderCards();
+                return;
+            }
+            const head = e.target.closest('.group-h');
+            if (head) {
+                const group = head.closest('.group');
+                if (!group) return;
+                const id = group.dataset.group;
+                const st = groupState[id] || (groupState[id] = { collapsed: false, locked: false });
+                if (st.locked) { showToast('该分组已锁定，无法折叠'); return; }
+                st.collapsed = !st.collapsed;
+                persistGroups();
+                renderCards();
+            }
+        });
         $('saveConfigBtn').onclick = () => {
             const productId = $('inputProductId').value.trim();
             const deviceName = $('inputDeviceName').value.trim();
@@ -1381,7 +1663,7 @@
             showToast('配置已清除');
         };
         $('inputAppTitle').addEventListener('input', function () {
-            let v = this.value.slice(0, 5);
+            let v = this.value.slice(0, 8);
             this.value = v;
             const title = v.trim() || '万能配置台';
             config.appTitle = title;
@@ -1415,6 +1697,13 @@
         $('pType').onchange = applyTypeVisibility;
         $('histClose').onclick = closeHistory;
         $('historyModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHistory(); });
+        $('histRanges').addEventListener('click', function (e) {
+            const b = e.target.closest('.hr-btn');
+            if (!b) return;
+            currentHistRange = Number(b.dataset.range);
+            document.querySelectorAll('.hr-btn').forEach(x => x.classList.toggle('active', Number(x.dataset.range) === currentHistRange));
+            loadHistory();
+        });
         $('clearAlertsBtn').onclick = () => { alerts = []; persistAlerts(); renderAlertList(); showToast('已清空'); };
         $('resetBtn').onclick = () => {
             if (!confirm('将清除所有配置、数据点和报警记录，确定恢复默认？')) return;
@@ -1434,7 +1723,7 @@
     function init() {
         loadAll();
         applyTheme(load(STORE.theme, 'default'));
-        const appTitle = (config.appTitle || '万能配置台').slice(0, 5);
+        const appTitle = (config.appTitle || '万能配置台').slice(0, 8);
         $('appTitleText').textContent = appTitle;
         $('inputAppTitle').value = config.appTitle === '万能配置台' ? '' : (config.appTitle || '');
         $('deviceNameDisplay').textContent = config.deviceName || '未配置';
